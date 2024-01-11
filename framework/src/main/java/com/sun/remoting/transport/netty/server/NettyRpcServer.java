@@ -7,6 +7,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
+import java.net.InetSocketAddress;
+
 public class NettyRpcServer {
     public static void main(String[] args) {
         new NettyRpcServer().bing(7397);
@@ -22,14 +24,16 @@ public class NettyRpcServer {
                     .channel(NioServerSocketChannel.class)    //非阻塞模式
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childHandler(new MyChannelInitializer());
-            ChannelFuture f = b.bind(port).sync();
+            ChannelFuture f = b.bind("127.0.0.01", port).sync();
             f.channel().closeFuture().sync();
+            InetSocketAddress socketAddress = (InetSocketAddress) f.channel().localAddress();
+            String ip = socketAddress.getAddress().getHostAddress();
+            System.out.println("Netty Server is listening on IP: " + ip + " Port: " + port);
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
             childGroup.shutdownGracefully();
             parentGroup.shutdownGracefully();
         }
-
     }
 }

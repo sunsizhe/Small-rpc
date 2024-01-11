@@ -1,5 +1,7 @@
 package com.sun.remoting.transport.netty.client;
 
+import com.alibaba.fastjson.JSONObject;
+import com.sun.remoting.message.RpcRequest;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.SocketChannel;
@@ -8,6 +10,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MyClientHandler extends ChannelInboundHandlerAdapter {
+    private RpcRequest request;
+
+    public MyClientHandler(RpcRequest request) {
+        this.request = request;
+    }
 
     /**
      * 建立连接后, 通知客户端建立连接成功hhhhhh
@@ -23,8 +30,18 @@ public class MyClientHandler extends ChannelInboundHandlerAdapter {
         System.out.println("链接报告完毕");
         //通知客户端链接建立成功
         String str = "通知服务端链接建立成功" + " " + new Date() + " " + channel.localAddress().getHostString() + "\r\n";
-        ctx.writeAndFlush(str);
+        //System.out.println(request.getInterfaceName());
+        ctx.writeAndFlush(JSONObject.toJSONString(request)+"\r\n");
+        //ctx.writeAndFlush(request);
     }
+
+    private RpcRequest getRequest(){
+        RpcRequest request = RpcRequest.builder()
+                .interfaceName("HelloService")
+                .build();
+        return request;
+    }
+
 
     /**
      * 当客户端主动断开服务端的链接后，这个通道就是不活跃的。也就是说客户端与服务端的关闭了通信通道并且不可以传输数据
@@ -48,7 +65,7 @@ public class MyClientHandler extends ChannelInboundHandlerAdapter {
         //接收msg消息{与上一章节相比，此处已经不需要自己进行解码}
         System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " 接收到消息：" + msg);
         //通知客户端链消息发送成功
-        String str = "客户端收到：" + new Date() + " " + msg + "\r\n";
-        ctx.writeAndFlush(str);
+        //String str = "客户端收到：" + new Date() + " " + msg + "\r\n";
+        //ctx.writeAndFlush(str);
     }
 }
